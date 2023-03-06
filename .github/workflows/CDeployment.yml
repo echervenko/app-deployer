@@ -9,7 +9,7 @@ env:
   helm_repository:    "https://github.com/farrukh90/custom_helm_chart.git"
   google_domain_name: "${{ secrets.GOOGLE_DOMAIN_NAME }}"
   environment:        "qa"
-  github_username:    "echervenko"
+  github_username:    "farrukh90"
   slack_enabled:      "false"
 
 
@@ -55,11 +55,15 @@ jobs:
           git clone "${{ env.helm_repository }}"
         
 
-      # Get k8s credentials
-      - name: Get k8s credentials
-        run: |
-          gcloud container clusters get-credentials "${{ env.cluster_name }}" --region  "${{ env.region }}"
-          kubectl get nodes
+      - id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v1'
+        with:
+          cluster_name: 'project-cluster'
+          location: 'us-central1'
+
+      # The KUBECONFIG env var is automatically exported and picked up by kubectl.
+      - id: 'kubeconfig'
+        run: 'mkdir ~/.kube && cat $KUBECONFIG > ~/.kube/config'
 
       
       - name: Configure Backend
